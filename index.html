@@ -87,6 +87,24 @@ input::placeholder{color:var(--muted);}
 .mp-box{background:rgba(0,158,227,.07);border:1px solid rgba(0,158,227,.25);border-radius:12px;padding:18px;margin-bottom:16px;text-align:center;}
 .mp-tag{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#00a8e8;margin-bottom:8px;font-weight:700;}
 .btn-mp{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#009ee3,#00b9f2);color:#fff;text-decoration:none;border-radius:10px;padding:13px 26px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;margin-top:4px;}
+/* Pasos de pago */
+.step-indicator{display:flex;justify-content:center;gap:0;margin-bottom:20px;}
+.step-item{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;max-width:100px;position:relative;}
+.step-item:not(:last-child)::after{content:'';position:absolute;top:13px;left:calc(50% + 13px);right:calc(-50% + 13px);height:2px;background:var(--border);}
+.step-item.done::after{background:var(--gold);}
+.step-dot{width:28px;height:28px;border-radius:50%;background:var(--dark3);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--muted);z-index:1;transition:all .3s;}
+.step-item.active .step-dot{border-color:var(--gold);color:var(--gold);background:rgba(245,200,66,.1);}
+.step-item.done .step-dot{background:var(--gold);border-color:var(--gold);color:var(--dark);}
+.step-lbl{font-size:10px;color:var(--muted);text-align:center;letter-spacing:.5px;}
+.step-item.active .step-lbl,.step-item.done .step-lbl{color:var(--text);}
+.step-panel{display:none;}.step-panel.active{display:block;}
+.paid-confirm{background:rgba(46,204,113,.07);border:2px dashed rgba(46,204,113,.4);border-radius:12px;padding:20px;text-align:center;margin-bottom:16px;}
+.paid-confirm .icon{font-size:36px;margin-bottom:8px;}
+.paid-confirm p{color:var(--muted);font-size:13px;line-height:1.6;}
+.btn-back{width:100%;background:transparent;border:1px solid var(--border);border-radius:10px;padding:12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--muted);cursor:pointer;margin-bottom:10px;transition:all .2s;}
+.btn-back:hover{border-color:var(--gold);color:var(--text);}
+.btn-paid{width:100%;background:var(--green);color:#fff;border:none;border-radius:10px;padding:14px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;cursor:pointer;transition:all .2s;margin-bottom:10px;}
+.btn-paid:hover{background:#27ae60;transform:translateY(-1px);}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;padding:20px;}
 .modal-bg.open{display:flex;}
 .modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px 28px;max-width:420px;width:100%;text-align:center;}
@@ -234,214 +252,4 @@ let state=loadLocal();
 function fmt(n){return'$'+Number(n).toLocaleString('es-CO');}
 
 const FESTIVOS_FIJOS=['01-01','01-06','03-19','05-01','06-29','07-20','08-07','08-15','10-12','11-01','11-11','12-08','12-25'];
-const FESTIVOS_MOVILES=['2025-04-17','2025-04-18','2025-05-29','2025-06-19','2025-06-23','2025-07-07','2026-04-02','2026-04-03','2026-05-14','2026-06-04','2026-06-08','2026-06-15','2027-03-25','2027-03-26','2027-05-06','2027-05-27','2027-05-31','2027-06-07'];
-function esFestivo(d){
-  const mm=String(d.getUTCMonth()+1).padStart(2,'0'),dd=String(d.getUTCDate()).padStart(2,'0'),yyyy=d.getUTCFullYear();
-  return FESTIVOS_FIJOS.includes(`${mm}-${dd}`)||FESTIVOS_MOVILES.includes(`${yyyy}-${mm}-${dd}`);
-}
-
-// Obtiene próximo viernes sorteo (día del juego, no la hora de cierre)
-function getSorteoDate(){
-  const ct=new Date(Date.now()-5*3600000);
-  const day=ct.getUTCDay(),hour=ct.getUTCHours(),min=ct.getUTCMinutes();
-  let du=(5-day+7)%7;
-  if(du===0&&(hour>23||(hour===23&&min>0)))du=7;
-  let c=new Date(ct);c.setUTCDate(ct.getUTCDate()+du);c.setUTCHours(23,0,0,0);
-  while(esFestivo(c)){c.setUTCDate(c.getUTCDate()+1);while(c.getUTCDay()===0||c.getUTCDay()===6)c.setUTCDate(c.getUTCDate()+1);}
-  return new Date(c.getTime()+5*3600000);
-}
-
-// Estado de inscripción según hora colombiana
-// Cierra: viernes 10:00 PM Colombia
-// Reabre: viernes 11:59 PM Colombia
-// (Para que puedas ingresar el resultado sin riesgo)
-function getEstadoInscripcion(){
-  const ct=new Date(Date.now()-5*3600000); // hora Colombia
-  const day=ct.getUTCDay(); // 5=viernes
-  const hour=ct.getUTCHours();
-  const min=ct.getUTCMinutes();
-  const esFiernesHoy=day===5;
-  // Verificar si el viernes de hoy es festivo (si lo es, el sorteo se mueve)
-  // En ese caso no aplicamos cierre
-  if(!esFiernesHoy) return 'abierto';
-  // Viernes entre 22:00 y 23:58 → cerrado (ventana para ingresar resultado)
-  if(hour===22||(hour===23&&min<=58)) return 'cerrado';
-  return 'abierto';
-}
-
-function calcPozo(){
-  return state.pozo_acumulado+Math.floor(state.participants.length*state.config.cuota*(1-state.config.reserva/100));
-}
-function genNumero(){
-  const used=state.participants.map(p=>p.numero);
-  let num,att=0;
-  do{num=String(Math.floor(Math.random()*1000)).padStart(3,'0');att++;}while(used.includes(num)&&att<2000);
-  return num;
-}
-function showToast(msg,dur=2800){
-  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'),dur);
-}
-
-// ============================================================
-// TABS
-// ============================================================
-function switchTab(name){
-  ['inicio','inscribir','participantes'].forEach((n,i)=>{
-    document.querySelectorAll('.tab')[i].classList.toggle('active',n===name);
-    document.getElementById('tab-'+n).classList.toggle('active',n===name);
-  });
-  if(name==='inicio')renderInicio();
-  if(name==='inscribir')renderFormInscripcion();
-  if(name==='participantes')renderNumeros();
-}
-
-// ============================================================
-// COUNTDOWN — apunta al cierre (10PM viernes Colombia)
-// ============================================================
-function updateCountdown(){
-  const sorteo=getSorteoDate();
-  // Cierre = mismo día del sorteo a las 10PM Colombia = 3AM UTC del sábado
-  const cierreUTC=new Date(sorteo.getTime()-1*3600000); // sorteo-1h = 10PM col
-  let diff=Math.max(0,cierreUTC-new Date());
-  document.getElementById('cd-d').textContent=String(Math.floor(diff/86400000)).padStart(2,'0');
-  document.getElementById('cd-h').textContent=String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
-  document.getElementById('cd-m').textContent=String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
-  document.getElementById('cd-s').textContent=String(Math.floor((diff%60000)/1000)).padStart(2,'0');
-}
-setInterval(updateCountdown,1000);updateCountdown();
-
-// ============================================================
-// RENDER INICIO
-// ============================================================
-function renderInicioConDatos(s){
-  state=s;
-  const pozo=calcPozo(),cfg=state.config;
-  document.getElementById('pozo-display').textContent=fmt(pozo);
-  document.getElementById('total-participants').textContent=state.participants.length;
-  document.getElementById('cuota-display').textContent=fmt(cfg.cuota);
-  document.getElementById('info-cuota').textContent=fmt(cfg.cuota);
-  const sd=getSorteoDate(),sc=new Date(sd.getTime()-5*3600000);
-  const ef=sc.getUTCDay()===5;
-  document.getElementById('next-friday').textContent=sc.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'})+(ef?'':' ⚠️ (festivo)');
-  const estado=getEstadoInscripcion();
-  const banner=document.getElementById('estado-banner');
-  if(estado==='cerrado'){
-    banner.innerHTML=`<div class="cierre-banner"><div class="titulo">🔒 INSCRIPCIONES CERRADAS</div><div class="sub">Ventana de sorteo activa · Reabre a las 11:59 PM</div></div>`;
-  }else{banner.innerHTML='';}
-  const ganadores=state.historial.filter(h=>h.ganador).length;
-  const totalEnt=state.historial.reduce((a,h)=>a+(h.premio||0),0);
-  document.getElementById('stat-semanas').textContent=state.historial.length;
-  document.getElementById('stat-ganadores').textContent=ganadores;
-  document.getElementById('stat-total').textContent=fmt(totalEnt);
-  const rc=document.getElementById('last-result-content');
-  if(!state.historial.length){
-    rc.innerHTML='<div class="empty-state"><div class="icon">🎰</div><p>Aún no hay sorteos realizados</p></div>';
-  }else{
-    const last=state.historial[state.historial.length-1];
-    const digits=last.numero_loteria.padStart(3,'0').split('');
-    const badge=last.ganador?`<span class="winner-badge">✅ Ganador: ${last.ganador} · ${fmt(last.premio)}</span>`:`<span class="no-winner-badge">❌ Sin ganador — pozo acumulado</span>`;
-    rc.innerHTML=`<div style="margin-bottom:8px;font-size:12px;color:var(--muted)">${last.fecha}</div><div class="result-number">${digits.map(d=>`<div class="digit-box">${d}</div>`).join('')}<span style="color:var(--muted);font-size:20px;margin-left:8px;font-family:'Bebas Neue'">N° LOTERÍA</span></div>${badge}`;
-  }
-  const hs=document.getElementById('history-section');
-  if(state.historial.length>1){
-    const rows=[...state.historial].reverse().slice(1).map(h=>`<div class="history-row"><div><div class="h-date">${h.fecha}</div><div style="font-size:11px;color:var(--muted)">Semana ${h.semana}</div></div><div class="h-num">${h.numero_loteria.padStart(3,'0')}</div><div class="h-winner">${h.ganador?'🏆 '+h.ganador:'➕ Acumulado'}</div></div>`).join('');
-    hs.innerHTML=`<div class="result-card"><div class="result-title">📋 Historial</div>${rows}</div>`;
-  }else hs.innerHTML='';
-}
-
-async function renderInicio(){
-  // 1. Mostrar inmediatamente con datos locales (sin delay)
-  renderInicioConDatos(loadLocal());
-  // 2. Actualizar silenciosamente desde Google Sheets
-  const remote=await fetchState();
-  renderInicioConDatos(remote);
-}
-
-// ============================================================
-// FORM INSCRIPCIÓN — con control de estado
-// ============================================================
-function renderFormInscripcion(){
-  state=loadLocal();
-  const estado=getEstadoInscripcion();
-  const el=document.getElementById('inscribir-content');
-  if(estado==='cerrado'){
-    el.innerHTML=`
-      <div class="cierre-banner" style="padding:28px;margin-top:10px;">
-        <div class="titulo">🔒 INSCRIPCIONES CERRADAS</div>
-        <div class="sub" style="margin-top:8px;line-height:1.7;">Las inscripciones cierran los viernes a las <strong style="color:var(--text)">10:00 PM</strong> para realizar el sorteo.<br>Reabrirán a las <strong style="color:var(--text)">11:59 PM</strong> de este mismo viernes.</div>
-      </div>`;
-    return;
-  }
-  const cfg=state.config;
-  el.innerHTML=`
-    <div class="form-card">
-      <div class="form-title">✍️ Nueva inscripción</div>
-      <div class="info-box">Cuota: <strong>${fmt(cfg.cuota)}</strong> · Se asigna un número de <strong>3 dígitos</strong> automáticamente.</div>
-      <div class="form-group"><label>Nombre completo</label><input type="text" id="inp-nombre" placeholder="Ej: María García"/></div>
-      <div class="form-group"><label>Número de WhatsApp</label><input type="tel" id="inp-phone" placeholder="Ej: 3001234567"/></div>
-      <div class="mp-box">
-        <div class="mp-tag">💳 Pago con MercadoPago</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">Realiza el pago de <strong style="color:var(--text)">${fmt(cfg.cuota)}</strong></div>
-        <a href="https://mpago.li/1Sq95Cx" target="_blank" class="btn-mp">💳 PAGAR AHORA</a>
-        <div style="margin-top:10px;font-size:11px;color:var(--muted);">Toca el botón para completar el pago</div>
-      </div>
-      <button class="btn" onclick="inscribirParticipante()">INSCRIBIRME</button>
-      <div id="result-inscripcion" style="margin-top:16px;"></div>
-    </div>`;
-}
-
-// ============================================================
-// INSCRIBIR
-// ============================================================
-async function inscribirParticipante(){
-  if(getEstadoInscripcion()==='cerrado'){showToast('🔒 Inscripciones cerradas hasta las 11:59 PM');return;}
-  const nombre=document.getElementById('inp-nombre')?.value.trim();
-  const phone=document.getElementById('inp-phone')?.value.trim();
-  if(!nombre){showToast('⚠️ Ingresa tu nombre completo');return;}
-  if(!phone||phone.length<7){showToast('⚠️ WhatsApp inválido');return;}
-  state=await fetchState();
-  const numero=genNumero();
-  state.participants.push({id:Date.now(),nombre,phone,numero,fecha:new Date().toLocaleDateString('es-CO')});
-  await pushState(state);
-  document.getElementById('inp-nombre').value='';
-  document.getElementById('inp-phone').value='';
-  document.getElementById('result-inscripcion').innerHTML=`
-    <div class="assigned-num">
-      <p>¡Inscripción exitosa! Tu número es:</p>
-      <div class="big-num">${numero}</div>
-      <p>Guárdalo — es tu número para el sorteo del viernes 🍀</p>
-    </div>`;
-  renderInicio();
-  showToast(`✅ ${nombre} inscrito — número ${numero}`);
-}
-
-// ============================================================
-// NÚMEROS (lista pública — solo números, sin nombres)
-// ============================================================
-async function renderNumeros(){
-  state=await fetchState();
-  document.getElementById('badge-count').textContent=state.participants.length+' números';
-  const grid=document.getElementById('numeros-grid');
-  if(!state.participants.length){
-    grid.innerHTML='<div class="empty-state"><div class="icon">🎫</div><p>Aún no hay números inscritos</p></div>';
-    return;
-  }
-  // Ordenar números de menor a mayor
-  const sorted=[...state.participants].sort((a,b)=>parseInt(a.numero)-parseInt(b.numero));
-  grid.innerHTML=sorted.map(p=>`<div class="num-card">${p.numero}</div>`).join('');
-}
-
-// AUTO-REFRESH cada 30s
-setInterval(()=>{
-  const t=document.querySelector('.tab.active');
-  if(t&&t.textContent.includes('Inicio'))renderInicio();
-},30000);
-
-renderInicio();
-renderFormInscripcion();
-</script>
-</body>
-</html>
-
-
+const FESTIVOS_MOVILES=['2025-04-17','2025-04-18','2025-05-29','2025-06-19','2025-06-23','2025-07-07','2026-04-02','2026-04-03','2026-05-14','2026-06-04','2026-06-08','2026-06-15','2027-03-25','2027-03-26','2027
