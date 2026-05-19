@@ -87,24 +87,6 @@ input::placeholder{color:var(--muted);}
 .mp-box{background:rgba(0,158,227,.07);border:1px solid rgba(0,158,227,.25);border-radius:12px;padding:18px;margin-bottom:16px;text-align:center;}
 .mp-tag{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#00a8e8;margin-bottom:8px;font-weight:700;}
 .btn-mp{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#009ee3,#00b9f2);color:#fff;text-decoration:none;border-radius:10px;padding:13px 26px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;margin-top:4px;}
-/* Pasos de pago */
-.step-indicator{display:flex;justify-content:center;gap:0;margin-bottom:20px;}
-.step-item{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;max-width:100px;position:relative;}
-.step-item:not(:last-child)::after{content:'';position:absolute;top:13px;left:calc(50% + 13px);right:calc(-50% + 13px);height:2px;background:var(--border);}
-.step-item.done::after{background:var(--gold);}
-.step-dot{width:28px;height:28px;border-radius:50%;background:var(--dark3);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--muted);z-index:1;transition:all .3s;}
-.step-item.active .step-dot{border-color:var(--gold);color:var(--gold);background:rgba(245,200,66,.1);}
-.step-item.done .step-dot{background:var(--gold);border-color:var(--gold);color:var(--dark);}
-.step-lbl{font-size:10px;color:var(--muted);text-align:center;letter-spacing:.5px;}
-.step-item.active .step-lbl,.step-item.done .step-lbl{color:var(--text);}
-.step-panel{display:none;}.step-panel.active{display:block;}
-.paid-confirm{background:rgba(46,204,113,.07);border:2px dashed rgba(46,204,113,.4);border-radius:12px;padding:20px;text-align:center;margin-bottom:16px;}
-.paid-confirm .icon{font-size:36px;margin-bottom:8px;}
-.paid-confirm p{color:var(--muted);font-size:13px;line-height:1.6;}
-.btn-back{width:100%;background:transparent;border:1px solid var(--border);border-radius:10px;padding:12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--muted);cursor:pointer;margin-bottom:10px;transition:all .2s;}
-.btn-back:hover{border-color:var(--gold);color:var(--text);}
-.btn-paid{width:100%;background:var(--green);color:#fff;border:none;border-radius:10px;padding:14px;font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;cursor:pointer;transition:all .2s;margin-bottom:10px;}
-.btn-paid:hover{background:#27ae60;transform:translateY(-1px);}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center;padding:20px;}
 .modal-bg.open{display:flex;}
 .modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px 28px;max-width:420px;width:100%;text-align:center;}
@@ -252,4 +234,49 @@ let state=loadLocal();
 function fmt(n){return'$'+Number(n).toLocaleString('es-CO');}
 
 const FESTIVOS_FIJOS=['01-01','01-06','03-19','05-01','06-29','07-20','08-07','08-15','10-12','11-01','11-11','12-08','12-25'];
-const FESTIVOS_MOVILES=['2025-04-17','2025-04-18','2025-05-29','2025-06-19','2025-06-23','2025-07-07','2026-04-02','2026-04-03','2026-05-14','2026-06-04','2026-06-08','2026-06-15','2027-03-25','2027-03-26','2027
+const FESTIVOS_MOVILES=['2025-04-17','2025-04-18','2025-05-29','2025-06-19','2025-06-23','2025-07-07','2026-04-02','2026-04-03','2026-05-14','2026-06-04','2026-06-08','2026-06-15','2027-03-25','2027-03-26','2027-05-06','2027-05-27','2027-05-31','2027-06-07'];
+function esFestivo(d){
+  const mm=String(d.getUTCMonth()+1).padStart(2,'0'),dd=String(d.getUTCDate()).padStart(2,'0'),yyyy=d.getUTCFullYear();
+  return FESTIVOS_FIJOS.includes(`${mm}-${dd}`)||FESTIVOS_MOVILES.includes(`${yyyy}-${mm}-${dd}`);
+}
+
+// Obtiene próximo viernes sorteo (día del juego, no la hora de cierre)
+function getSorteoDate(){
+  const ct=new Date(Date.now()-5*3600000);
+  const day=ct.getUTCDay(),hour=ct.getUTCHours(),min=ct.getUTCMinutes();
+  let du=(5-day+7)%7;
+  if(du===0&&(hour>23||(hour===23&&min>0)))du=7;
+  let c=new Date(ct);c.setUTCDate(ct.getUTCDate()+du);c.setUTCHours(23,0,0,0);
+  while(esFestivo(c)){c.setUTCDate(c.getUTCDate()+1);while(c.getUTCDay()===0||c.getUTCDay()===6)c.setUTCDate(c.getUTCDate()+1);}
+  return new Date(c.getTime()+5*3600000);
+}
+
+// Estado de inscripción según hora colombiana
+// Cierra: viernes 10:00 PM Colombia
+// Reabre: viernes 11:59 PM Colombia
+// (Para que puedas ingresar el resultado sin riesgo)
+function getEstadoInscripcion(){
+  const ct=new Date(Date.now()-5*3600000); // hora Colombia
+  const day=ct.getUTCDay(); // 5=viernes
+  const hour=ct.getUTCHours();
+  const min=ct.getUTCMinutes();
+  const esFiernesHoy=day===5;
+  // Verificar si el viernes de hoy es festivo (si lo es, el sorteo se mueve)
+  // En ese caso no aplicamos cierre
+  if(!esFiernesHoy) return 'abierto';
+  // Viernes entre 22:00 y 23:58 → cerrado (ventana para ingresar resultado)
+  if(hour===22||(hour===23&&min<=58)) return 'cerrado';
+  return 'abierto';
+}
+
+function calcPozo(){
+  return state.pozo_acumulado+state.participants.length*state.config.cuota;
+}
+function genNumero(){
+  const used=state.participants.map(p=>p.numero);
+  let num,att=0;
+  do{num=String(Math.floor(Math.random()*1000)).padStart(3,'0');att++;}while(used.includes(num)&&att<2000);
+  return num;
+}
+function showToast(msg,dur=2800){
+  const t=document.getElementById('toast');t.te
