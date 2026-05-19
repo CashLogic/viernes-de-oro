@@ -270,11 +270,236 @@ function getEstadoInscripcion(){
 }
 
 function calcPozo(){
-  // El pozo usa los $5.000 completos por participante.
-  // La comisión de MercadoPago la absorbe el organizador, no sale del pozo.
-  return state.pozo_acumulado+Math.floor(state.participants.length*state.config.cuota);
+  // El pozo muestra el total completo recaudado (sin descontar comisión)
+  return state.pozo_acumulado + (state.participants.length * state.config.cuota);
 }
 function genNumero(){
   const used=state.participants.map(p=>p.numero);
   let num,att=0;
-  do{num=String(Math.floor(Math.random()*1000)).padStart(3,'
+  do{num=String(Math.floor(Math.random()*1000)).padStart(3,'0');att++;}while(used.includes(num)&&att<2000);
+  return num;
+}
+function showToast(msg,dur=2800){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(name){
+  ['inicio','inscribir','participantes'].forEach((n,i)=>{
+    document.querySelectorAll('.tab')[i].classList.toggle('active',n===name);
+    document.getElementById('tab-'+n).classList.toggle('active',n===name);
+  });
+  if(name==='inicio')renderInicio();
+  if(name==='inscribir')renderFormInscripcion();
+  if(name==='participantes')renderNumeros();
+}
+
+// ============================================================
+// COUNTDOWN — apunta al cierre (10PM viernes Colombia)
+// ============================================================
+function updateCountdown(){
+  const sorteo=getSorteoDate();
+  // Cierre = mismo día del sorteo a las 10PM Colombia = 3AM UTC del sábado
+  const cierreUTC=new Date(sorteo.getTime()-1*3600000); // sorteo-1h = 10PM col
+  let diff=Math.max(0,cierreUTC-new Date());
+  document.getElementById('cd-d').textContent=String(Math.floor(diff/86400000)).padStart(2,'0');
+  document.getElementById('cd-h').textContent=String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
+  document.getElementById('cd-m').textContent=String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+  document.getElementById('cd-s').textContent=String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+}
+setInterval(updateCountdown,1000);updateCountdown();
+
+// ============================================================
+// RENDER INICIO
+// ============================================================
+function renderInicioConDatos(s){
+  state=s;
+  const pozo=calcPozo(),cfg=state.config;
+  document.getElementById('pozo-display').textContent=fmt(pozo);
+  document.getElementById('total-participants').textContent=state.participants.length;
+  document.getElementById('cuota-display').textContent=fmt(cfg.cuota);
+  document.getElementById('info-cuota').textContent=fmt(cfg.cuota);
+  const sd=getSorteoDate(),sc=new Date(sd.getTime()-5*3600000);
+  const ef=sc.getUTCDay()===5;
+  document.getElementById('next-friday').textContent=sc.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'})+(ef?'':' ⚠️ (festivo)');
+  const estado=getEstadoInscripcion();
+  const banner=document.getElementById('estado-banner');
+  if(estado==='cerrado'){
+    banner.innerHTML=`<div class="cierre-banner"><div class="titulo">🔒 INSCRIPCIONES CERRADAS</div><div class="sub">Ventana de sorteo activa · Reabre a las 11:59 PM</div></div>`;
+  }else{banner.innerHTML='';}
+  const ganadores=state.historial.filter(h=>h.ganador).length;
+  const totalEnt=state.historial.reduce((a,h)=>a+(h.premio||0),0);
+  document.getElementById('stat-semanas').textContent=state.historial.length;
+  document.getElementById('stat-ganadores').textContent=ganadores;
+  document.getElementById('stat-total').textContent=fmt(totalEnt);
+  const rc=document.getElementById('last-result-content');
+  if(!state.historial.length){
+    rc.innerHTML='<div class="empty-state"><div class="icon">🎰</div><p>Aún no hay sorteos realizados</p></div>';
+  }else{
+    const last=state.historial[state.historial.length-1];
+    const digits=last.numero_loteria.padStart(3,'0').split('');
+    const badge=last.ganador?`<span class="winner-badge">✅ Ganador: ${last.ganador} · ${fmt(last.premio)}</span>`:`<span class="no-winner-badge">❌ Sin ganador — pozo acumulado</span>`;
+    rc.innerHTML=`<div style="margin-bottom:8px;font-size:12px;color:var(--muted)">${last.fecha}</div><div class="result-number">${digits.map(d=>`<div class="digit-box">${d}</div>`).join('')}<span style="color:var(--muted);font-size:20px;margin-left:8px;font-family:'Bebas Neue'">N° LOTERÍA</span></div>${badge}`;
+  }
+  const hs=document.getElementById('history-section');
+  if(state.historial.length>1){
+    const rows=[...state.historial].reverse().slice(1).map(h=>`<div class="history-row"><div><div class="h-date">${h.fecha}</div><div style="font-size:11px;color:var(--muted)">Semana ${h.semana}</div></div><div class="h-num">${h.numero_loteria.padStart(3,'0')}</div><div class="h-winner">${h.ganador?'🏆 '+h.ganador:'➕ Acumulado'}</div></div>`).join('');
+    hs.innerHTML=`<div class="result-card"><div class="result-title">📋 Historial</div>${rows}</div>`;
+  }else hs.innerHTML='';
+}
+
+async function renderInicio(){
+  // 1. Mostrar inmediatamente con datos locales (sin delay)
+  renderInicioConDatos(loadLocal());
+  // 2. Actualizar silenciosamente desde Google Sheets
+  const remote=await fetchState();
+  renderInicioConDatos(remote);
+}
+
+// ============================================================
+// FORM INSCRIPCIÓN — flujo: pagar → regresar → confirmar
+// ============================================================
+function renderFormInscripcion(){
+  state=loadLocal();
+  const estado=getEstadoInscripcion();
+  const el=document.getElementById('inscribir-content');
+  if(estado==='cerrado'){
+    el.innerHTML=`
+      <div class="cierre-banner" style="padding:28px;margin-top:10px;">
+        <div class="titulo">🔒 INSCRIPCIONES CERRADAS</div>
+        <div class="sub" style="margin-top:8px;line-height:1.7;">Las inscripciones cierran los viernes a las <strong style="color:var(--text)">10:00 PM</strong> para realizar el sorteo.<br>Reabrirán a las <strong style="color:var(--text)">11:59 PM</strong> de este mismo viernes.</div>
+      </div>`;
+    return;
+  }
+  const cfg=state.config;
+  el.innerHTML=`
+    <div class="form-card">
+      <div class="form-title">✍️ Nueva inscripción</div>
+      <div class="info-box">Cuota: <strong>${fmt(cfg.cuota)}</strong> · Se asigna un número de <strong>3 dígitos</strong> automáticamente.</div>
+
+      <!-- PASO 1: Datos -->
+      <div id="paso1">
+        <div class="form-group"><label>Nombre completo</label><input type="text" id="inp-nombre" placeholder="Ej: María García"/></div>
+        <div class="form-group"><label>Número de WhatsApp</label><input type="tel" id="inp-phone" placeholder="Ej: 3001234567"/></div>
+        <button class="btn" onclick="irAPagar()">CONTINUAR AL PAGO →</button>
+      </div>
+
+      <!-- PASO 2: Pagar y confirmar (oculto inicialmente) -->
+      <div id="paso2" style="display:none;">
+        <div class="mp-box">
+          <div class="mp-tag">💳 Paso 1 — Realiza el pago</div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">Paga <strong style="color:var(--text)">${fmt(cfg.cuota)}</strong> con MercadoPago</div>
+          <a href="https://mpago.li/1Sq95Cx" target="_blank" class="btn-mp" onclick="marcarPagoRealizado()">💳 PAGAR AHORA</a>
+          <div style="margin-top:10px;font-size:11px;color:var(--muted);">Al terminar el pago regresa a esta página</div>
+        </div>
+
+        <div id="confirmar-pago-box" style="background:rgba(46,204,113,.06);border:1px solid rgba(46,204,113,.2);border-radius:12px;padding:18px;margin-bottom:16px;display:none;">
+          <div style="font-size:13px;color:var(--green);font-weight:600;margin-bottom:12px;">✅ Paso 2 — Confirma tu pago</div>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px;color:var(--text);text-transform:none;letter-spacing:0;">
+            <input type="checkbox" id="chk-pagado" onchange="toggleConfirmar(this)" style="width:20px;height:20px;cursor:pointer;accent-color:var(--green);flex-shrink:0;"/>
+            Ya realicé el pago de <strong style="color:var(--gold);margin:0 4px;">${fmt(cfg.cuota)}</strong> por MercadoPago
+          </label>
+        </div>
+
+        <button class="btn" id="btn-inscribir" onclick="inscribirParticipante()" disabled style="opacity:.4;">INSCRIBIRME Y OBTENER MI NÚMERO</button>
+        <button onclick="volverPaso1()" style="width:100%;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:10px;padding:11px;font-size:14px;cursor:pointer;margin-top:8px;">← Volver y corregir mis datos</button>
+      </div>
+
+      <div id="result-inscripcion" style="margin-top:16px;"></div>
+    </div>`;
+}
+
+function irAPagar(){
+  const nombre=document.getElementById('inp-nombre')?.value.trim();
+  const phone=document.getElementById('inp-phone')?.value.trim();
+  if(!nombre){showToast('⚠️ Ingresa tu nombre completo');return;}
+  if(!phone||phone.length<7){showToast('⚠️ WhatsApp inválido');return;}
+  // Verificar nombre duplicado
+  const existe=state.participants.find(p=>p.nombre.toLowerCase()===nombre.toLowerCase());
+  if(existe){showToast('⚠️ Ya existe un registro con ese nombre');return;}
+  document.getElementById('paso1').style.display='none';
+  document.getElementById('paso2').style.display='block';
+}
+
+function volverPaso1(){
+  document.getElementById('paso1').style.display='block';
+  document.getElementById('paso2').style.display='none';
+  document.getElementById('confirmar-pago-box').style.display='none';
+  document.getElementById('btn-inscribir').disabled=true;
+  document.getElementById('btn-inscribir').style.opacity='.4';
+  if(document.getElementById('chk-pagado')) document.getElementById('chk-pagado').checked=false;
+}
+
+function marcarPagoRealizado(){
+  // Mostrar caja de confirmación cuando toca el botón de pagar
+  setTimeout(()=>{
+    document.getElementById('confirmar-pago-box').style.display='block';
+  }, 1500);
+}
+
+function toggleConfirmar(chk){
+  const btn=document.getElementById('btn-inscribir');
+  btn.disabled=!chk.checked;
+  btn.style.opacity=chk.checked?'1':'.4';
+}
+
+// ============================================================
+// INSCRIBIR
+// ============================================================
+async function inscribirParticipante(){
+  if(getEstadoInscripcion()==='cerrado'){showToast('🔒 Inscripciones cerradas hasta las 11:59 PM');return;}
+  // Los datos vienen del paso1 (ya validados en irAPagar)
+  const nombre=document.getElementById('inp-nombre')?.value.trim();
+  const phone=document.getElementById('inp-phone')?.value.trim();
+  if(!nombre||!phone){showToast('⚠️ Error con los datos. Vuelve al paso anterior.');return;}
+  state=await fetchState();
+  // Verificar duplicado de nuevo (alguien más pudo inscribirse mientras tanto)
+  const existe=state.participants.find(p=>p.nombre.toLowerCase()===nombre.toLowerCase());
+  if(existe){showToast('⚠️ Ya existe un registro con ese nombre');return;}
+  const numero=genNumero();
+  state.participants.push({id:Date.now(),nombre,phone,numero,fecha:new Date().toLocaleDateString('es-CO')});
+  await pushState(state);
+  document.getElementById('result-inscripcion').innerHTML=`
+    <div class="assigned-num">
+      <p>¡Inscripción exitosa! Tu número es:</p>
+      <div class="big-num">${numero}</div>
+      <p>Guárdalo — es tu número para el sorteo del viernes 🍀</p>
+    </div>`;
+  // Ocultar los pasos
+  document.getElementById('paso2').style.display='none';
+  renderInicio();
+  showToast(`✅ ${nombre} inscrito — número ${numero}`);
+}
+
+// ============================================================
+// NÚMEROS (lista pública — solo números, sin nombres)
+// ============================================================
+async function renderNumeros(){
+  state=await fetchState();
+  document.getElementById('badge-count').textContent=state.participants.length+' números';
+  const grid=document.getElementById('numeros-grid');
+  if(!state.participants.length){
+    grid.innerHTML='<div class="empty-state"><div class="icon">🎫</div><p>Aún no hay números inscritos</p></div>';
+    return;
+  }
+  // Ordenar números de menor a mayor
+  const sorted=[...state.participants].sort((a,b)=>parseInt(a.numero)-parseInt(b.numero));
+  grid.innerHTML=sorted.map(p=>`<div class="num-card">${p.numero}</div>`).join('');
+}
+
+// AUTO-REFRESH cada 30s
+setInterval(()=>{
+  const t=document.querySelector('.tab.active');
+  if(t&&t.textContent.includes('Inicio'))renderInicio();
+},30000);
+
+renderInicio();
+renderFormInscripcion();
+</script>
+</body>
+</html>
+
+
