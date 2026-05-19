@@ -314,8 +314,8 @@ setInterval(updateCountdown,1000);updateCountdown();
 // ============================================================
 // RENDER INICIO
 // ============================================================
-async function renderInicio(){
-  state=await fetchState();
+function renderInicioConDatos(s){
+  state=s;
   const pozo=calcPozo(),cfg=state.config;
   document.getElementById('pozo-display').textContent=fmt(pozo);
   document.getElementById('total-participants').textContent=state.participants.length;
@@ -324,22 +324,16 @@ async function renderInicio(){
   const sd=getSorteoDate(),sc=new Date(sd.getTime()-5*3600000);
   const ef=sc.getUTCDay()===5;
   document.getElementById('next-friday').textContent=sc.toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'})+(ef?'':' ⚠️ (festivo)');
-
-  // Banner estado inscripción
   const estado=getEstadoInscripcion();
   const banner=document.getElementById('estado-banner');
   if(estado==='cerrado'){
     banner.innerHTML=`<div class="cierre-banner"><div class="titulo">🔒 INSCRIPCIONES CERRADAS</div><div class="sub">Ventana de sorteo activa · Reabre a las 11:59 PM</div></div>`;
-  }else{
-    banner.innerHTML='';
-  }
-
+  }else{banner.innerHTML='';}
   const ganadores=state.historial.filter(h=>h.ganador).length;
   const totalEnt=state.historial.reduce((a,h)=>a+(h.premio||0),0);
   document.getElementById('stat-semanas').textContent=state.historial.length;
   document.getElementById('stat-ganadores').textContent=ganadores;
   document.getElementById('stat-total').textContent=fmt(totalEnt);
-
   const rc=document.getElementById('last-result-content');
   if(!state.historial.length){
     rc.innerHTML='<div class="empty-state"><div class="icon">🎰</div><p>Aún no hay sorteos realizados</p></div>';
@@ -354,6 +348,14 @@ async function renderInicio(){
     const rows=[...state.historial].reverse().slice(1).map(h=>`<div class="history-row"><div><div class="h-date">${h.fecha}</div><div style="font-size:11px;color:var(--muted)">Semana ${h.semana}</div></div><div class="h-num">${h.numero_loteria.padStart(3,'0')}</div><div class="h-winner">${h.ganador?'🏆 '+h.ganador:'➕ Acumulado'}</div></div>`).join('');
     hs.innerHTML=`<div class="result-card"><div class="result-title">📋 Historial</div>${rows}</div>`;
   }else hs.innerHTML='';
+}
+
+async function renderInicio(){
+  // 1. Mostrar inmediatamente con datos locales (sin delay)
+  renderInicioConDatos(loadLocal());
+  // 2. Actualizar silenciosamente desde Google Sheets
+  const remote=await fetchState();
+  renderInicioConDatos(remote);
 }
 
 // ============================================================
