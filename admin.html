@@ -1,419 +1,471 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>El Marcador — Admin</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin — Viernes de Oro 🔒</title>
 <style>
-:root{--v2:#1a5c2a;--v3:#2e7d3f;--v4:#4caf50;--do:#f9a825;--bg:#111;--p1:#1e1e1e;--p2:#252525;--br:#383838;--tx:#e0e0e0;--tx2:#aaa;--tx3:#666;--rd:#e53935;--ra:10px}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
-.hdr{background:linear-gradient(135deg,var(--v2),#0d1f10);padding:18px 20px;display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--do)}
-.hdr h1{font-size:20px;letter-spacing:3px;color:#fff;font-weight:900}
-.hdr span{font-size:11px;color:var(--do);letter-spacing:2px;font-weight:700}
-.gate{max-width:360px;margin:80px auto;padding:0 16px}
-.gate-card{background:var(--p1);border:1px solid var(--br);border-radius:var(--ra);padding:32px 24px;text-align:center}
-.gate-icon{font-size:44px;margin-bottom:12px}
-.gate-card h2{font-size:20px;letter-spacing:3px;color:#fff;margin-bottom:8px;font-weight:900}
-.gate-card p{color:var(--tx2);font-size:13px;margin-bottom:20px}
-.inp{width:100%;background:var(--p2);border:1px solid var(--br);border-radius:8px;padding:13px 14px;color:#fff;font-size:15px;margin-bottom:10px}
-.inp:focus{outline:none;border-color:var(--v4)}
-.err{color:var(--rd);font-size:12px;margin-bottom:10px;min-height:16px}
-.btn{width:100%;padding:13px;background:var(--v2);border:none;border-radius:8px;color:#fff;font-size:15px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s}
-.btn:hover{background:var(--v3)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.panel{max-width:700px;margin:0 auto;padding:20px 16px 60px}
-.tabs{display:flex;gap:3px;background:var(--p2);padding:3px;border-radius:8px;margin-bottom:20px}
-.tab{flex:1;padding:10px;background:none;border:none;border-radius:6px;color:var(--tx3);font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:all .2s}
-.tab.active{background:var(--v2);color:#fff}
-.tc{display:none}.tc.active{display:block}
-.sec{background:var(--p1);border:1px solid var(--br);border-radius:var(--ra);padding:20px;margin-bottom:16px}
-.sec h3{font-size:13px;font-weight:700;letter-spacing:2px;color:var(--do);margin-bottom:14px;text-transform:uppercase}
-.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-@media(max-width:480px){.frow{grid-template-columns:1fr}}
-.fg{display:flex;flex-direction:column;gap:5px}
-.fg label{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--tx3);text-transform:uppercase}
-.fg input,.fg select{background:var(--p2);border:1px solid var(--br);border-radius:7px;padding:11px 12px;color:#fff;font-size:14px;width:100%}
-.fg input:focus{outline:none;border-color:var(--v4)}
-.tog-row{display:flex;align-items:center;gap:10px;margin-top:6px}
-.tog{position:relative;display:inline-block;width:40px;height:22px;cursor:pointer}
-.tog input{opacity:0;width:0;height:0}
-.tog-sl{position:absolute;inset:0;background:#444;border-radius:22px;transition:.3s}
-.tog-sl:before{content:"";position:absolute;width:16px;height:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s}
-.tog input:checked+.tog-sl{background:var(--v3)}
-.tog input:checked+.tog-sl:before{transform:translateX(18px)}
-.apr{display:grid;grid-template-columns:1fr 1fr 70px 28px;gap:6px;align-items:center;margin-bottom:7px;background:var(--p2);padding:8px 10px;border-radius:8px;border:1px solid var(--br)}
-@media(max-width:480px){.apr{grid-template-columns:1fr 1fr}.aph{display:none}}
-.apr input{background:var(--p1);border:1px solid var(--br);border-radius:6px;padding:8px;color:#fff;font-size:13px;width:100%}
-.apr input:focus{outline:none;border-color:var(--v4)}
-.btn-rm{background:none;border:1px solid var(--br);color:var(--rd);border-radius:5px;width:26px;height:26px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center}
-.btn-rm:hover{background:rgba(229,57,53,.1);border-color:var(--rd)}
-.rrow{display:grid;grid-template-columns:1fr 80px;gap:8px;align-items:center;margin-bottom:7px;padding:9px 12px;background:var(--p2);border-radius:8px;border:1px solid var(--br)}
-.rmatch{font-size:14px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rinp{text-align:center;font-size:17px;font-weight:900;letter-spacing:2px;background:var(--bg);border:1px solid var(--br);border-radius:6px;padding:7px 4px;color:#fff;width:100%}
-.rinp:focus{outline:none;border-color:var(--v4)}
-.irow{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;background:var(--p2);border-radius:8px;margin-bottom:5px;border:1px solid var(--br);gap:8px}
-.irow-info{flex:1;min-width:0}
-.iname{font-weight:700;color:#fff;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.imeta{color:var(--tx3);font-size:11px;margin-top:2px}
-.icode{font-size:13px;font-weight:900;letter-spacing:2px;color:var(--do);flex-shrink:0}
-.btn-del{background:none;border:1px solid var(--rd);color:var(--rd);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:11px;font-weight:700;white-space:nowrap}
-.btn-del:hover{background:rgba(229,57,53,.1)}
-.stats{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-.spill{background:var(--p2);border:1px solid var(--br);border-radius:20px;padding:5px 13px;font-size:12px}
-.spill strong{color:var(--do)}
-.aact{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;padding-top:14px;border-top:1px solid var(--br);margin-top:14px}
-.bbtn{border:none;border-radius:7px;font-size:13px;font-weight:700;letter-spacing:1px;padding:10px 16px;cursor:pointer;transition:all .2s}
-.bp{background:var(--v2);color:#fff}.bp:hover{background:var(--v3)}
-.bs{background:none;border:1px solid var(--br);color:var(--tx)}.bs:hover{border-color:var(--v4);color:var(--v4)}
-.bd{background:none;border:1px solid var(--rd);color:var(--rd)}.bd:hover{background:rgba(229,57,53,.08)}
-.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--p2);border:1px solid var(--br);border-radius:8px;padding:10px 16px;font-size:13px;color:#fff;z-index:1000;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.ok{border-color:var(--v4)}.toast.err{border-color:var(--rd)}
-.confirm-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;padding:16px}
-.confirm-overlay.open{display:flex}
-.confirm-box{background:var(--p1);border:1px solid var(--br);border-radius:var(--ra);padding:24px;max-width:360px;width:100%}
-.confirm-box h3{font-size:16px;font-weight:900;letter-spacing:2px;color:#fff;margin-bottom:8px}
-.confirm-box p{color:var(--tx2);font-size:13px;margin-bottom:6px}
-.confirm-box strong{color:#fff}
-.confirm-btns{display:flex;gap:10px;margin-top:20px}
-.confirm-btns button{flex:1}
-.hint{font-size:12px;color:var(--tx2);margin-bottom:10px;line-height:1.5}
+:root{--gold:#F5C842;--gold2:#E8A800;--dark:#0A0A0F;--dark3:#1C1C28;--card:#16161F;--border:rgba(245,200,66,0.18);--text:#F0EDE6;--muted:#7A7A8A;--green:#2ECC71;--red:#E74C3C;--blue:#00a8e8;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--dark);color:var(--text);font-family:Arial,sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 70% 40% at 50% 0%,rgba(245,200,66,.08) 0%,transparent 60%);pointer-events:none;}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px;position:relative;z-index:1;}
+header{padding:24px 0 18px;border-bottom:1px solid var(--border);margin-bottom:24px;text-align:center;}
+.admin-tag{display:inline-block;background:var(--red);color:#fff;font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;padding:3px 12px;border-radius:2px;margin-bottom:8px;}
+h1{font-size:clamp(24px,5vw,40px);font-weight:900;color:var(--gold);line-height:1;}
+h1 span{color:var(--text);}
+.warn{background:rgba(231,76,60,.07);border:1px solid rgba(231,76,60,.25);border-radius:8px;padding:8px 14px;font-size:11px;color:#ff7070;margin-top:8px;display:inline-block;}
+.sync-bar{display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:var(--muted);margin-bottom:16px;}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);}
+.sync-dot.ok{background:var(--green);}.sync-dot.err{background:var(--red);}
+#login-screen{max-width:360px;margin:60px auto;}
+.login-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:32px 24px;text-align:center;}
+.login-card h2{font-size:22px;color:var(--gold);margin-bottom:6px;}
+.login-card p{color:var(--muted);font-size:13px;margin-bottom:20px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+@media(max-width:600px){.grid2{grid-template-columns:1fr;}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 18px;}
+.card-full{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 18px;margin-bottom:16px;}
+.card-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.fg{margin-bottom:12px;}
+label{display:block;font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+input{width:100%;background:var(--dark3);border:1px solid var(--border);border-radius:7px;padding:10px 12px;color:var(--text);font-size:14px;outline:none;transition:border-color .2s;}
+input:focus{border-color:var(--gold);}
+input::placeholder{color:var(--muted);}
+input[type=password]{letter-spacing:3px;}
+input[type=number]{text-align:center;}
+.btn{width:100%;background:var(--gold);color:var(--dark);border:none;border-radius:9px;padding:12px;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:4px;}
+.btn:hover{background:var(--gold2);}
+.btn-sm{width:auto;padding:8px 16px;font-size:14px;margin-top:0;}
+.btn-outline{background:transparent;border:2px solid var(--gold);color:var(--gold);}
+.btn-outline:hover{background:rgba(245,200,66,.08);}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-danger:hover{background:#cc0000;}
+/* RESUMEN */
+.res-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.r-item .r-lbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:2px;}
+.r-item .r-val{font-size:26px;font-weight:900;color:var(--gold);}
+.r-item .r-val.green{color:var(--green);}
+.r-item .r-val.red{color:var(--red);}
+.r-item .r-val.blue{color:var(--blue);}
+.r-item .r-val.sm{font-size:18px;color:var(--text);}
+/* SORTEO */
+.sorteo-num{text-align:center;font-size:44px;font-weight:900;letter-spacing:10px;color:var(--gold);}
+.preview-box{background:var(--dark3);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin:12px 0;font-size:13px;}
+/* COMISIÓN MP */
+.mp-detail{background:rgba(0,168,232,.06);border:1px solid rgba(0,168,232,.2);border-radius:10px;padding:14px 16px;margin-top:10px;}
+.mp-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--blue);margin-bottom:10px;}
+.mp-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(0,168,232,.08);font-size:13px;}
+.mp-row:last-child{border:none;}
+.mp-val{font-weight:700;}
+.mp-val.neg{color:var(--red);}
+.mp-val.pos{color:var(--green);}
+/* PARTICIPANTES */
+.p-row{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;background:var(--dark3);border:1px solid var(--border);border-radius:8px;margin-bottom:7px;gap:8px;}
+.p-name{font-weight:700;font-size:14px;}
+.p-meta{font-size:11px;color:var(--muted);}
+.p-num{font-size:26px;font-weight:900;color:var(--gold);letter-spacing:4px;flex-shrink:0;}
+.btn-icon{background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);padding:4px 9px;cursor:pointer;font-size:12px;transition:all .2s;flex-shrink:0;}
+.btn-icon:hover{border-color:var(--red);color:var(--red);}
+/* HISTORIAL */
+.h-row{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--dark3);border:1px solid var(--border);border-radius:9px;margin-bottom:7px;}
+.h-date{font-size:12px;color:var(--muted);}
+.h-numg{font-size:22px;font-weight:900;color:var(--gold);letter-spacing:3px;}
+.divider{border:none;border-top:1px solid var(--border);margin:14px 0;}
+.empty{text-align:center;padding:24px;color:var(--muted);font-size:13px;}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--dark);padding:10px 22px;border-radius:28px;font-weight:700;font-size:13px;z-index:1000;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+footer{text-align:center;padding:24px 0 32px;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;border-top:1px solid var(--border);margin-top:28px;}
 </style>
 </head>
 <body>
+<div class="wrap">
+  <header>
+    <div class="admin-tag">🔒 Panel Privado</div>
+    <h1>ADMIN <span>VIERNES DE ORO</span></h1>
+    <div class="warn">⚠️ Archivo privado — nunca subir a GitHub</div>
+  </header>
 
-<div class="hdr">
-  <div>
-    <h1>⚙️ EL MARCADOR</h1>
-    <span>PANEL DE ADMINISTRADOR</span>
-  </div>
-</div>
-
-<!-- GATE -->
-<div id="gate">
-  <div class="gate">
-    <div class="gate-card">
-      <div class="gate-icon">🔐</div>
+  <!-- LOGIN -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div style="font-size:44px;margin-bottom:10px;">🔐</div>
       <h2>ACCESO ADMIN</h2>
-      <p>Este panel es solo para el organizador.<br>Ingresá tu contraseña para continuar.</p>
-      <input class="inp" type="password" id="pwd" placeholder="Contraseña" onkeydown="if(event.key==='Enter')login()">
-      <div class="err" id="loginErr"></div>
-      <button class="btn" id="loginBtn" onclick="login()">ENTRAR</button>
+      <p>Ingresa tu contraseña para continuar</p>
+      <div class="fg"><input type="password" id="inp-pin" placeholder="Contraseña..." onkeydown="if(event.key==='Enter')checkPin()"/></div>
+      <button class="btn" onclick="checkPin()">ENTRAR</button>
+    </div>
+  </div>
+
+  <!-- PANEL -->
+  <div id="admin-panel" style="display:none;">
+    <div class="sync-bar"><div class="sync-dot" id="sync-dot"></div><span id="sync-txt">Conectando...</span></div>
+
+    <!-- RESUMEN -->
+    <div class="card-full">
+      <div class="card-title">📊 Resumen de la semana</div>
+      <div id="resumen-content"></div>
+      <!-- DETALLE MERCADOPAGO -->
+      <div class="mp-detail" id="mp-detail"></div>
+    </div>
+
+    <div class="grid2">
+      <!-- CONFIG -->
+      <div class="card">
+        <div class="card-title">⚙️ Configuración</div>
+        <div class="fg"><label>Nueva contraseña</label><input type="password" id="cfg-pin" placeholder="Dejar vacío = no cambiar"/></div>
+        <div class="fg"><label>Cuota por participante ($)</label><input type="number" id="cfg-cuota" value="5000"/></div>
+        <div class="fg"><label>Tu comisión % (reserva)</label><input type="number" id="cfg-reserva" value="30" min="0" max="50"/></div>
+        <button class="btn btn-sm btn-outline" style="width:100%;margin-top:8px;" onclick="guardarConfig()">GUARDAR</button>
+      </div>
+      <!-- POZO -->
+      <div class="card">
+        <div class="card-title">💰 Gestión del pozo</div>
+        <div class="fg"><label>Agregar semilla ($)</label><input type="number" id="inp-semilla" placeholder="Ej: 50000"/></div>
+        <button class="btn btn-sm btn-outline" style="width:100%;" onclick="agregarSemilla()">+ AGREGAR AL POZO</button>
+        <div class="divider"></div>
+        <div class="fg"><label>Editar pozo acumulado ($)</label><input type="number" id="inp-pozo-manual" placeholder="0"/></div>
+        <button class="btn btn-sm btn-outline" style="width:100%;" onclick="editarPozo()">ACTUALIZAR POZO</button>
+        <div class="divider"></div>
+        <button class="btn btn-sm btn-danger" style="width:100%;" onclick="resetSemana()">RESETEAR SEMANA</button>
+      </div>
+    </div>
+
+    <!-- SORTEO -->
+    <div class="card-full">
+      <div class="card-title">🎰 Realizar sorteo del viernes</div>
+      <div class="grid2" style="margin-bottom:0;">
+        <div class="fg">
+          <label>N° Ganador Lotería Medellín (3 dígitos)</label>
+          <input type="text" id="inp-loteria" placeholder="000" maxlength="3" class="sorteo-num" oninput="previewSorteo()"/>
+        </div>
+        <div class="fg"><label>Fecha del sorteo</label><input type="date" id="inp-fecha"/></div>
+      </div>
+      <div id="sorteo-preview"></div>
+      <button class="btn" style="margin-top:12px;" onclick="realizarSorteo()">🎰 REALIZAR SORTEO</button>
+    </div>
+
+    <!-- PARTICIPANTES -->
+    <div class="card-full">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+        <div class="card-title" style="margin-bottom:0;">👥 Participantes inscritos</div>
+        <span id="p-badge" style="background:rgba(245,200,66,.15);color:var(--gold);padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;">0</span>
+      </div>
+      <input type="text" id="buscar-p" placeholder="🔍 Buscar por nombre o número..." oninput="filtrarP(this.value)" style="margin-bottom:12px;"/>
+      <div id="admin-participantes"></div>
+    </div>
+
+    <!-- HISTORIAL -->
+    <div class="card-full">
+      <div class="card-title">📋 Historial de sorteos</div>
+      <div id="admin-historial"></div>
     </div>
   </div>
 </div>
-
-<!-- PANEL -->
-<div id="panel" style="display:none">
-  <div class="panel">
-    <div class="tabs">
-      <button class="tab active" data-t="jornada">📋 Jornada</button>
-      <button class="tab" data-t="resultados">⚽ Resultados</button>
-      <button class="tab" data-t="inscritos">👥 Inscritos</button>
-    </div>
-
-    <!-- JORNADA -->
-    <div class="tc active" id="t-jornada">
-      <div class="sec">
-        <h3>Configuración</h3>
-        <div class="frow">
-          <div class="fg"><label>Precio entrada ($)</label><input type="number" id="aPrecio" value="10000" step="1000"></div>
-          <div class="fg"><label>Número Nequi</label><input type="text" id="aNequi" value="3016492643"></div>
-        </div>
-        <div class="frow">
-          <div class="fg"><label>Cierre del formulario</label><input type="datetime-local" id="aCierre"></div>
-          <div class="fg"></div>
-        </div>
-        <div class="fg" style="margin-top:8px">
-          <label>Estado del formulario</label>
-          <div class="tog-row">
-            <label class="tog"><input type="checkbox" id="aOpen" checked><span class="tog-sl"></span></label>
-            <span id="togLbl" style="font-size:13px;color:var(--tx)">Abierto</span>
-          </div>
-        </div>
-      </div>
-      <div class="sec">
-        <h3>Partidos</h3>
-        <p class="hint">Agregá los partidos de la jornada. Los participantes pronostican el marcador de cada uno.</p>
-        <div id="aPartList"></div>
-        <button class="bbtn bs" onclick="addPartido()" style="margin-top:6px">+ Agregar partido</button>
-      </div>
-      <div class="aact">
-        <button class="bbtn bd" onclick="nuevaJornada()">🔄 Nueva jornada</button>
-        <button class="bbtn bp" id="btnSave" onclick="saveJornada()">💾 Guardar</button>
-      </div>
-    </div>
-
-    <!-- RESULTADOS -->
-    <div class="tc" id="t-resultados">
-      <div class="sec">
-        <h3>Resultados de los partidos</h3>
-        <p class="hint">Ingresá el marcador final. La tabla se actualiza automáticamente para todos los participantes.</p>
-        <div id="aResList"></div>
-        <div class="aact"><button class="bbtn bp" onclick="saveResultados()">💾 Actualizar tabla</button></div>
-      </div>
-    </div>
-
-    <!-- INSCRITOS -->
-    <div class="tc" id="t-inscritos">
-      <div class="sec">
-        <h3>Participantes inscritos</h3>
-        <div class="stats" id="aStats"></div>
-        <div id="aInscList"></div>
-        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
-          <button class="bbtn bs" onclick="exportar()">📥 Exportar Excel</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- CONFIRM ELIMINAR -->
-<div class="confirm-overlay" id="confDel">
-  <div class="confirm-box">
-    <h3>⚠️ ELIMINAR</h3>
-    <p>Vas a eliminar a:</p>
-    <p><strong id="delNom">—</strong></p>
-    <p style="margin-top:8px">Esta acción no se puede deshacer.</p>
-    <div class="confirm-btns">
-      <button class="bbtn bs" onclick="document.getElementById('confDel').classList.remove('open')">Cancelar</button>
-      <button class="bbtn bd" onclick="confirmarDel()">🗑️ Eliminar</button>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
+<footer>ADMIN PRIVADO — VIERNES DE ORO · No compartir</footer>
 
 <script>
-const GAS = "https://script.google.com/macros/s/AKfycbyLBJCjc0OEsddTLVHk3YaCUSmR7yQbzaRzssmihxgoBG81x8PSLxpyrDRlXDzaYlKw/exec"; 
+const GAS_URL = 'PEGA_AQUI_TU_URL_DE_APPS_SCRIPT';
+const STORAGE_KEY = 'viernesDeOro_v3';
+let ADMIN_PASSWORD = 'ViDOro2025#';
 
-let J = { precio:10000, nequi:'3016492643', cierre:null, abierto:true, partidos:[], resultados:{}, participantes:[], numero:1 };
-let pendingDel = null;
+const DEFAULT_STATE = {
+  participants:[], historial:[], pozo_acumulado:0, semana_num:1,
+  config:{ cuota:5000, reserva:30 }
+};
 
-// //  LOGIN
-async function login() {
-  const pwd = document.getElementById('pwd').value;
-  const err = document.getElementById('loginErr');
-  const btn = document.getElementById('loginBtn');
-  err.textContent='';
-  if (!pwd) { err.textContent='Ingresá la contraseña'; return; }
-  btn.textContent='Verificando...'; btn.disabled=true;
-  try {
-    const r = await gasPost({ action:'adminLogin', pwd });
-    if (r.ok) {
-      document.getElementById('gate').style.display='none';
-      document.getElementById('panel').style.display='';
-      loadPanel();
-    } else { err.textContent='Contraseña incorrecta'; }
-  } catch(e) { err.textContent='Error de conexión — reintentá'; }
-  btn.textContent='ENTRAR'; btn.disabled=false;
+// Comisión MercadoPago: 3.29% + $800 por transacción
+const MP_PCT = 0.0329;
+const MP_FIJO = 800;
+
+function calcComisionMP(monto){
+  return Math.ceil(monto * MP_PCT) + MP_FIJO;
 }
-document.getElementById('pwd').addEventListener('keydown', e=>{ if(e.key==='Enter') login(); });
-
-// //  TABS
-document.querySelectorAll('.tab').forEach(t=>{
-  t.addEventListener('click',()=>{
-    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-    document.querySelectorAll('.tc').forEach(x=>x.classList.remove('active'));
-    t.classList.add('active');
-    document.getElementById('t-'+t.dataset.t).classList.add('active');
-    if(t.dataset.t==='inscritos') loadInscritos();
-    if(t.dataset.t==='resultados') renderResultados();
-  });
-});
-
-// //  CARGAR PANEL
-async function loadPanel() {
-  try {
-    const r = await gasGet('getJornada');
-    if (r.ok) J = { ...J, ...r.data };
-  } catch(e) {}
-  renderJornada();
+function calcNeto(monto){
+  return monto - calcComisionMP(monto);
 }
 
-function renderJornada() {
-  document.getElementById('aPrecio').value = J.precio || 10000;
-  document.getElementById('aNequi').value  = J.nequi  || '3016492643';
-  document.getElementById('aOpen').checked = J.abierto !== false;
-  updateTogLbl();
-  if (J.cierre) {
-    const d = new Date(J.cierre);
-    document.getElementById('aCierre').value = new Date(d-d.getTimezoneOffset()*60000).toISOString().slice(0,16);
+// ============================================================
+// SYNC
+// ============================================================
+async function fetchState(){
+  if(GAS_URL.includes('PEGA_AQUI')){setSyncStatus('local','Modo local');return loadLocal();}
+  try{
+    const res=await fetch(GAS_URL+'?action=getState',{cache:'no-store'});
+    const data=await res.json();
+    if(data&&data.config){saveLocal(data);setSyncStatus('ok','Sincronizado ✓');return data;}
+    throw new Error();
+  }catch{setSyncStatus('err','Sin conexión — datos locales');return loadLocal();}
+}
+async function pushState(s){
+  saveLocal(s);
+  if(GAS_URL.includes('PEGA_AQUI'))return;
+  try{
+    await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'setState',data:s})});
+    setSyncStatus('ok','Guardado ✓');
+  }catch{setSyncStatus('err','Error al guardar');}
+}
+function loadLocal(){
+  try{const s=localStorage.getItem(STORAGE_KEY);return s?{...JSON.parse(JSON.stringify(DEFAULT_STATE)),...JSON.parse(s)}:JSON.parse(JSON.stringify(DEFAULT_STATE));}
+  catch{return JSON.parse(JSON.stringify(DEFAULT_STATE));}
+}
+function saveLocal(d){localStorage.setItem(STORAGE_KEY,JSON.stringify(d));}
+function setSyncStatus(t,m){
+  const dot=document.getElementById('sync-dot'),txt=document.getElementById('sync-txt');
+  if(!dot||!txt)return;
+  dot.className='sync-dot'+(t==='ok'?' ok':t==='err'?' err':'');
+  txt.textContent=m;
+}
+let state=loadLocal();
+function fmt(n){return'$'+Number(n).toLocaleString('es-CO');}
+function showToast(msg,dur=3000){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),dur);
+}
+function calcPozo(){
+  return state.pozo_acumulado+Math.floor(state.participants.length*state.config.cuota*(1-state.config.reserva/100));
+}
+
+// ============================================================
+// LOGIN
+// ============================================================
+function checkPin(){
+  const val=document.getElementById('inp-pin').value;
+  if(val===ADMIN_PASSWORD||val===state.config?.pin){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('admin-panel').style.display='block';
+    renderAll();
+    showToast('✅ Bienvenido, Admin');
+  }else{
+    showToast('❌ Contraseña incorrecta');
+    document.getElementById('inp-pin').value='';
   }
-  renderAdminPartidos();
-  document.getElementById('aOpen').onchange = updateTogLbl;
 }
 
-function updateTogLbl() {
-  const chk = document.getElementById('aOpen').checked;
-  document.getElementById('togLbl').textContent = chk ? 'Abierto — aceptando inscripciones' : 'Cerrado';
+// ============================================================
+// RENDER ALL
+// ============================================================
+async function renderAll(){
+  state=await fetchState();
+  renderResumen();
+  renderParticipantes();
+  renderHistorial();
+  syncConfigFields();
+  previewSorteo();
 }
 
-// //  PARTIDOS
-function readPartidosFromDOM() {
-  return J.partidos.map((_,i)=>({
-    local:     (document.getElementById(`apl${i}`)?.value||J.partidos[i].local||'').trim(),
-    visitante: (document.getElementById(`apv${i}`)?.value||J.partidos[i].visitante||'').trim(),
-    hora:      (document.getElementById(`aph${i}`)?.value||J.partidos[i].hora||'').trim(),
-  }));
+function syncConfigFields(){
+  document.getElementById('cfg-cuota').value=state.config.cuota;
+  document.getElementById('cfg-reserva').value=state.config.reserva;
+  document.getElementById('inp-pozo-manual').value=state.pozo_acumulado;
+  document.getElementById('inp-fecha').value=new Date().toISOString().split('T')[0];
 }
 
-function renderAdminPartidos() {
-  document.getElementById('aPartList').innerHTML = J.partidos.map((p,i)=>`
-    <div class="apr">
-      <input type="text" value="${p.local}" placeholder="Equipo Local" id="apl${i}">
-      <input type="text" value="${p.visitante}" placeholder="Equipo Visitante" id="apv${i}">
-      <input type="text" value="${p.hora||''}" placeholder="Hora" id="aph${i}" class="aph">
-      <button class="btn-rm" onclick="removePartido(${i})">✕</button>
-    </div>
-  `).join('') || '<p style="color:var(--tx3);font-size:13px;padding:4px">Sin partidos. Agregá uno arriba.</p>';
+function renderResumen(){
+  const pozo=calcPozo();
+  const cfg=state.config;
+  const bruto=state.participants.length*cfg.cuota;
+  const miComisionBruta=Math.floor(bruto*cfg.reserva/100);
+  const totalComisionMP=state.participants.length*calcComisionMP(cfg.cuota);
+  const miComisionNeta=miComisionBruta-totalComisionMP;
+  const recaudoNeto=bruto-totalComisionMP;
+
+  document.getElementById('resumen-content').innerHTML=`
+    <div class="res-grid">
+      <div class="r-item"><div class="r-lbl">Pozo (${100-cfg.reserva}%)</div><div class="r-val">${fmt(pozo)}</div></div>
+      <div class="r-item"><div class="r-lbl">Tu comisión bruta (${cfg.reserva}%)</div><div class="r-val green">${fmt(miComisionBruta)}</div></div>
+      <div class="r-item"><div class="r-lbl">Participantes</div><div class="r-val sm">${state.participants.length}</div></div>
+      <div class="r-item"><div class="r-lbl">Recaudo bruto</div><div class="r-val sm">${fmt(bruto)}</div></div>
+      <div class="r-item"><div class="r-lbl">Pozo acumulado</div><div class="r-val sm">${fmt(state.pozo_acumulado)}</div></div>
+      <div class="r-item"><div class="r-lbl">Semana N°</div><div class="r-val sm">${state.semana_num}</div></div>
+    </div>`;
+
+  // Detalle MercadoPago
+  document.getElementById('mp-detail').innerHTML=`
+    <div class="mp-title">💳 Detalle comisión MercadoPago (3.29% + $800 por pago)</div>
+    <div class="mp-row"><span>Cuota por participante</span><span class="mp-val">${fmt(cfg.cuota)}</span></div>
+    <div class="mp-row"><span>Comisión MP por pago (3.29% + $800)</span><span class="mp-val neg">-${fmt(calcComisionMP(cfg.cuota))}</span></div>
+    <div class="mp-row"><span>Neto recibido por participante</span><span class="mp-val pos">${fmt(calcNeto(cfg.cuota))}</span></div>
+    <div class="mp-row" style="border-top:1px solid rgba(0,168,232,.2);margin-top:4px;padding-top:8px;"><span>Total comisión MP (${state.participants.length} pagos)</span><span class="mp-val neg">-${fmt(totalComisionMP)}</span></div>
+    <div class="mp-row"><span>Tu comisión neta (después de MP)</span><span class="mp-val pos">${fmt(Math.max(0,miComisionNeta))}</span></div>`;
 }
 
-function addPartido() {
-  J.partidos = readPartidosFromDOM();
-  J.partidos.push({local:'',visitante:'',hora:''});
-  renderAdminPartidos();
-  // Focus en el nuevo input
-  setTimeout(()=>document.getElementById(`apl${J.partidos.length-1}`)?.focus(),50);
+// ============================================================
+// PREVIEW SORTEO
+// ============================================================
+function previewSorteo(){
+  const numInput=document.getElementById('inp-loteria')?.value.trim();
+  const preview=document.getElementById('sorteo-preview');
+  if(!preview)return;
+  if(!numInput){preview.innerHTML='';return;}
+  const numLoteria=String(parseInt(numInput)||0).padStart(3,'0');
+  const pozo=calcPozo();
+  const ganador=state.participants.find(p=>p.numero===numLoteria);
+  const cfg=state.config;
+  const miComisionBruta=Math.floor(state.participants.length*cfg.cuota*cfg.reserva/100);
+  const totalComisionMP=state.participants.length*calcComisionMP(cfg.cuota);
+  const miComisionNeta=Math.max(0,miComisionBruta-totalComisionMP);
+
+  let html=`<div class="preview-box">`;
+  html+=`<div style="margin-bottom:8px;color:var(--muted);">N° Lotería: <strong style="color:var(--gold);font-size:22px;letter-spacing:4px;">${numLoteria}</strong></div>`;
+  if(ganador){
+    html+=`<div style="color:var(--green);font-weight:700;margin-bottom:4px;">🏆 GANADOR: ${ganador.nombre} — número ${ganador.numero}</div>`;
+    html+=`<div style="font-size:12px;color:var(--muted);">Premio al ganador: <strong style="color:var(--text)">${fmt(pozo)}</strong></div>`;
+  }else{
+    html+=`<div style="color:var(--red);">❌ Sin ganador — el pozo de ${fmt(pozo)} se acumula</div>`;
+  }
+  html+=`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);">
+    Tu comisión bruta: <strong style="color:var(--green)">${fmt(miComisionBruta)}</strong> · 
+    Comisión MP: <strong style="color:var(--red)">-${fmt(totalComisionMP)}</strong> · 
+    Tu neto: <strong style="color:var(--green)">${fmt(miComisionNeta)}</strong>
+  </div>`;
+  html+=`</div>`;
+  preview.innerHTML=html;
 }
 
-function removePartido(i) {
-  J.partidos = readPartidosFromDOM();
-  J.partidos.splice(i,1);
-  renderAdminPartidos();
-}
+// ============================================================
+// SORTEO
+// ============================================================
+async function realizarSorteo(){
+  const numInput=document.getElementById('inp-loteria').value.trim();
+  const fecha=document.getElementById('inp-fecha').value;
+  if(!numInput){showToast('⚠️ Ingresa el número de la Lotería');return;}
+  if(!fecha){showToast('⚠️ Selecciona la fecha');return;}
+  if(!state.participants.length){showToast('⚠️ No hay participantes esta semana');return;}
+  if(!confirm('¿Confirmas realizar el sorteo?'))return;
 
-// //  GUARDAR JORNADA
-async function saveJornada() {
-  const btn = document.getElementById('btnSave');
-  btn.textContent='Guardando...'; btn.disabled=true;
+  const numLoteria=String(parseInt(numInput)||0).padStart(3,'0');
+  const pozo=calcPozo();
+  const fechaFmt=new Date(fecha+'T12:00:00').toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const ganador=state.participants.find(p=>p.numero===numLoteria);
+  const cfg=state.config;
+  const miComisionBruta=Math.floor(state.participants.length*cfg.cuota*cfg.reserva/100);
+  const totalComisionMP=state.participants.length*calcComisionMP(cfg.cuota);
+  const miComisionNeta=Math.max(0,miComisionBruta-totalComisionMP);
 
-  const partidos = readPartidosFromDOM().filter(p=>p.local&&p.visitante);
-  const cierre   = document.getElementById('aCierre').value;
-
-  J = { ...J,
-    precio:  parseInt(document.getElementById('aPrecio').value)||10000,
-    nequi:   document.getElementById('aNequi').value.trim()||'3016492643',
-    cierre:  cierre ? new Date(cierre).toISOString() : null,
-    abierto: document.getElementById('aOpen').checked,
-    partidos,
+  const entrada={
+    semana:state.semana_num,fecha:fechaFmt,
+    numero_loteria:numLoteria,
+    participantes:state.participants.length,
+    pozo,
+    ganador:ganador?ganador.nombre:null,
+    premio:ganador?pozo:0,
+    comision_bruta:miComisionBruta,
+    comision_mp:totalComisionMP,
+    comision_neta:miComisionNeta,
+    acumulado_siguiente:ganador?0:pozo
   };
 
-  try {
-    const r = await gasPost({ action:'saveJornada', data:{ ...J, participantes:undefined } });
-    if (r.ok) { toast('✅ Jornada guardada','ok'); renderResultados(); }
-    else toast('❌ '+r.msg,'err');
-  } catch(e) { toast('❌ Error de conexión','err'); }
+  state.historial.push(entrada);
+  state.semana_num++;
+  state.participants=[];
+  state.pozo_acumulado=ganador?0:pozo;
+  await pushState(state);
 
-  btn.textContent='💾 Guardar'; btn.disabled=false;
-}
-
-// //  RESULTADOS
-function renderResultados() {
-  document.getElementById('aResList').innerHTML = J.partidos.length
-    ? J.partidos.map((p,i)=>`
-        <div class="rrow">
-          <div class="rmatch">${i+1}. ${p.local} vs ${p.visitante}</div>
-          <input class="rinp" type="text" id="rr${i}" value="${J.resultados?.[String(i)]||J.resultados?.[i]||''}" placeholder="2-1" maxlength="5" inputmode="numeric">
-        </div>`).join('')
-    : '<p style="color:var(--tx3);font-size:13px">Primero guardá los partidos en la pestaña Jornada.</p>';
+  document.getElementById('inp-loteria').value='';
+  if(ganador){
+    showToast(`🏆 Ganador: ${ganador.nombre} — ${fmt(pozo)}`);
+  }else{
+    showToast(`😮 Sin ganador — ${fmt(pozo)} acumulados`);
+  }
+  renderAll();
 }
 
-async function saveResultados() {
-  const resultados={};
-  J.partidos.forEach((_,i)=>{ const v=(document.getElementById(`rr${i}`)?.value||'').trim(); if(v) resultados[String(i)]=v; });
-  J.resultados=resultados;
-  try {
-    const r = await gasPost({ action:'saveResultados', jornada:1, resultados });
-    if (r.ok) toast('✅ Tabla actualizada','ok');
-    else toast('❌ '+r.msg,'err');
-  } catch(e) { toast('❌ Error de conexión','err'); }
+// ============================================================
+// CONFIG
+// ============================================================
+async function guardarConfig(){
+  const newPin=document.getElementById('cfg-pin').value.trim();
+  if(newPin){ADMIN_PASSWORD=newPin;state.config.pin=newPin;}
+  state.config.cuota=parseInt(document.getElementById('cfg-cuota').value)||5000;
+  state.config.reserva=parseFloat(document.getElementById('cfg-reserva').value)||30;
+  await pushState(state);
+  document.getElementById('cfg-pin').value='';
+  renderAll();
+  showToast('✅ Configuración guardada');
 }
 
-// //  INSCRITOS
-async function loadInscritos() {
-  document.getElementById('aInscList').innerHTML='<p style="color:var(--tx3);font-size:13px;padding:8px">Cargando...</p>';
-  try {
-    const r = await gasGet('getInscritos');
-    if (r.ok) {
-      J.participantes = r.data;
-      const bolsa = Math.round(r.data.length*J.precio*0.8);
-      document.getElementById('aStats').innerHTML=`
-        <span class="spill">Inscritos: <strong>${r.data.length}</strong></span>
-        <span class="spill">Recaudado: <strong>$${fmt(r.data.length*J.precio)}</strong></span>
-        <span class="spill">Bolsa: <strong>$${fmt(bolsa)}</strong></span>`;
-      document.getElementById('aInscList').innerHTML = r.data.length
-        ? r.data.map((p,i)=>`
-            <div class="irow">
-              <div class="irow-info">
-                <div class="iname">#${i+1} ${p.nombre}</div>
-                <div class="imeta">${p.wa} · ${p.hora||''}</div>
-              </div>
-              <div class="icode">${p.codigo||''}</div>
-              <button class="btn-del" onclick="pedirDel(${i},'${p.nombre.replace(/'/g,"\'")}','${p.correo||''}')">🗑️</button>
-            </div>`).join('')
-        : '<p style="color:var(--tx3);font-size:13px;padding:8px;text-align:center">Sin inscritos aún</p>';
-    }
-  } catch(e) { document.getElementById('aInscList').innerHTML='<p style="color:var(--tx3);font-size:13px;padding:8px">Error al cargar</p>'; }
+async function agregarSemilla(){
+  const val=parseInt(document.getElementById('inp-semilla').value);
+  if(!val||val<=0){showToast('⚠️ Monto inválido');return;}
+  if(!confirm(`¿Agregar ${fmt(val)} al pozo?`))return;
+  state=await fetchState();
+  state.pozo_acumulado+=val;
+  await pushState(state);
+  document.getElementById('inp-semilla').value='';
+  renderAll();
+  showToast(`✅ ${fmt(val)} agregados al pozo`);
 }
 
-function pedirDel(idx, nombre, correo) {
-  pendingDel = { idx, correo };
-  document.getElementById('delNom').textContent = nombre;
-  document.getElementById('confDel').classList.add('open');
+async function editarPozo(){
+  const val=parseInt(document.getElementById('inp-pozo-manual').value);
+  if(isNaN(val)||val<0){showToast('⚠️ Valor inválido');return;}
+  if(!confirm(`¿Establecer pozo en ${fmt(val)}?`))return;
+  state.pozo_acumulado=val;
+  await pushState(state);
+  renderAll();
+  showToast(`✅ Pozo actualizado a ${fmt(val)}`);
 }
 
-async function confirmarDel() {
-  document.getElementById('confDel').classList.remove('open');
-  if (!pendingDel) return;
-  try {
-    const r = await gasPost({ action:'eliminarParticipante', idx:pendingDel.idx, correo:pendingDel.correo });
-    if (r.ok) { toast('✅ Participante eliminado','ok'); loadInscritos(); }
-    else toast('❌ '+r.msg,'err');
-  } catch(e) { toast('❌ Error','err'); }
-  pendingDel=null;
+async function resetSemana(){
+  if(!confirm('⚠️ ¿Eliminar todos los participantes actuales?'))return;
+  state=await fetchState();
+  state.participants=[];
+  await pushState(state);
+  renderAll();
+  showToast('🔄 Participantes reseteados');
 }
 
-function exportar() {
-  if (!J.participantes?.length) { toast('Sin participantes','err'); return; }
-  let txt='#' + '\t' + 'Nombre' + '\t' + 'WhatsApp' + '\t' + 'Codigo' + '\n';
-  J.participantes.forEach((p,i)=>{ txt+=(i+1)+'\t'+p.nombre+'\t'+p.wa+'\t'+(p.codigo||'')+'\n'; });
-  const a=document.createElement('a');
-  a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(txt);
-  a.download=`ElMarcador_Inscritos.txt`;
-  a.click();
+// ============================================================
+// PARTICIPANTES
+// ============================================================
+function renderParticipantes(filtro=''){
+  document.getElementById('p-badge').textContent=state.participants.length+' inscritos';
+  const filtered=filtro?state.participants.filter(p=>p.nombre.toLowerCase().includes(filtro.toLowerCase())||p.numero.includes(filtro)):state.participants;
+  const el=document.getElementById('admin-participantes');
+  if(!filtered.length){el.innerHTML='<div class="empty">Sin participantes</div>';return;}
+  el.innerHTML=filtered.map(p=>`
+    <div class="p-row">
+      <div style="flex:1;min-width:0;">
+        <div class="p-name">${p.nombre}</div>
+        <div class="p-meta">📱 ${p.phone} · ${p.fecha}</div>
+      </div>
+      <div class="p-num">${p.numero}</div>
+      <button class="btn-icon" onclick="eliminarP(${p.id})">🗑️</button>
+    </div>`).join('');
+}
+function filtrarP(v){renderParticipantes(v);}
+
+async function eliminarP(id){
+  if(!confirm('¿Eliminar este participante?'))return;
+  state=await fetchState();
+  state.participants=state.participants.filter(p=>p.id!==id);
+  await pushState(state);
+  renderAll();
+  showToast('Participante eliminado');
 }
 
-async function nuevaJornada() {
-  if (!confirm('¿Limpiar todo e iniciar nueva jornada? No se puede deshacer.')) return;
-  J = { ...J, cierre:null, abierto:true, partidos:[], resultados:{}, participantes:[], numero:1 };
-  try {
-    await gasPost({ action:'nuevaJornada', data:{ ...J, participantes:undefined } });
-    toast('✅ Nueva jornada iniciada','ok');
-    renderJornada();
-    document.getElementById('aResList').innerHTML='';
-    document.getElementById('aInscList').innerHTML='';
-  } catch(e) { toast('❌ Error','err'); }
+// ============================================================
+// HISTORIAL
+// ============================================================
+function renderHistorial(){
+  const el=document.getElementById('admin-historial');
+  if(!state.historial.length){el.innerHTML='<div class="empty">Sin sorteos realizados</div>';return;}
+  el.innerHTML=[...state.historial].reverse().map(h=>`
+    <div class="h-row">
+      <div><div class="h-date">${h.fecha}</div><div style="font-size:11px;color:var(--muted)">Sem ${h.semana} · ${h.participantes} partic.</div></div>
+      <div class="h-numg">${h.numero_loteria.padStart(3,'0')}</div>
+      <div style="text-align:right;font-size:13px;">
+        ${h.ganador
+          ?`<div style="color:var(--green);font-weight:700;">🏆 ${h.ganador}</div><div style="color:var(--gold);font-size:17px;font-weight:900;">${fmt(h.premio)}</div><div style="font-size:11px;color:var(--green);">Tu neto: ${fmt(h.comision_neta||0)}</div>`
+          :`<div style="color:var(--red);">Sin ganador</div><div style="font-size:11px;color:var(--muted);">Acumulado: ${fmt(h.acumulado_siguiente)}</div><div style="font-size:11px;color:var(--green);">Tu neto: ${fmt(h.comision_neta||0)}</div>`
+        }
+      </div>
+    </div>`).join('');
 }
 
-// //  GAS HELPERS
-async function gasGet(action) {
-  const r = await fetch(`${GAS}?action=${action}`, {redirect:'follow'});
-  return r.json();
-}
-async function gasPost(body) {
-  const r = await fetch(GAS, {method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify(body),redirect:'follow'});
-  return r.json();
-}
-
-// //  UTILS
-function toast(msg,type='ok') {
-  const t=document.getElementById('toast');
-  t.textContent=msg; t.className=`toast ${type} show`;
-  setTimeout(()=>t.classList.remove('show'),3000);
-}
-function fmt(n) { return (n||0).toLocaleString('es-CO'); }
+document.getElementById('inp-pin').focus();
 </script>
 </body>
 </html>
