@@ -477,17 +477,23 @@ async function inscribirParticipante(){
 // ============================================================
 // NÚMEROS (lista pública — solo números, sin nombres)
 // ============================================================
-async function renderNumeros(){
-  state=await fetchState();
-  document.getElementById('badge-count').textContent=state.participants.length+' números';
+function renderNumerosConDatos(s){
+  document.getElementById('badge-count').textContent=s.participants.length+' números';
   const grid=document.getElementById('numeros-grid');
-  if(!state.participants.length){
+  if(!s.participants.length){
     grid.innerHTML='<div class="empty-state"><div class="icon">🎫</div><p>Aún no hay números inscritos</p></div>';
     return;
   }
-  // Ordenar números de menor a mayor
-  const sorted=[...state.participants].sort((a,b)=>parseInt(a.numero)-parseInt(b.numero));
+  const sorted=[...s.participants].sort((a,b)=>parseInt(a.numero)-parseInt(b.numero));
   grid.innerHTML=sorted.map(p=>`<div class="num-card">${p.numero}</div>`).join('');
+}
+
+async function renderNumeros(){
+  // 1. Mostrar inmediatamente con datos locales
+  renderNumerosConDatos(loadLocal());
+  // 2. Actualizar silenciosamente desde Google Sheets
+  const remote=await fetchState();
+  renderNumerosConDatos(remote);
 }
 
 // AUTO-REFRESH cada 30s
